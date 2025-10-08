@@ -47,7 +47,11 @@ def main_game(map_data, world_name, start_pos=None):
     world_grid = [[None for _ in range(MAP_WIDTH)] for _ in range(MAP_HEIGHT)]
     # ✨ 2. 현재 로드된 청크를 추적하기 위한 set
     loaded_chunks = set()
-
+    ITEM_TO_TILE_TYPE = {
+        "dirt": 1,
+        "grass": 1, # '잔디' 아이템도 설치 시에는 흙(1)으로 설치됩니다.
+        "stone": 3
+    }
     particles, item_drops, grass_spread_timer = [], [], 0
     break_timer = 0
     breaking_tile_coords = None
@@ -170,16 +174,20 @@ def main_game(map_data, world_name, start_pos=None):
                     if all([is_valid_grid_pos, is_close_enough, is_not_overlapping_player, has_support, is_in_sight, has_item]):
                         player.start_placing()
                         player.inventory[player.selected_item] -= 1
-                        ITEM_TO_TILE_TYPE = {
-                        "dirt": 1,
-                        "stone": 3
-                    }
-                    
-                    # 선택된 아이템에 맞는 타일 타입을 가져옴
+                        # 선택된 아이템에 맞는 타일 타입을 가져옴
                     item_type_to_place = player.selected_item
                     tile_type_to_place = ITEM_TO_TILE_TYPE.get(item_type_to_place, 1) # 기본값은 흙
 
                     world_grid[mouse_grid_y][mouse_grid_x] = Tile(mouse_grid_x, mouse_grid_y, tile_type_to_place)
+                    # 선택된 아이템에 맞는 타일 타입을 가져옴
+                    item_type_to_place = player.selected_item
+                    tile_type_to_place = ITEM_TO_TILE_TYPE.get(item_type_to_place, 1) # 기본값은 흙
+
+                    try: 
+                        world_grid[mouse_grid_y][mouse_grid_x] = Tile(mouse_grid_x, mouse_grid_y, tile_type_to_place)
+                    except UnboundLocalError:
+                        pass
+                
                 elif event.button == 4:  # 위로 스크롤
                     player.change_slot(-1)
                 elif event.button == 5:  # 아래로 스크롤
