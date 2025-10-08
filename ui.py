@@ -190,12 +190,13 @@ def draw_ui(player):
     health_text = small_font.render(f"HP: {int(player.health)} / {player.max_health}", True, WHITE); screen.blit(health_text, (25, 22))
     dirt_count = player.inventory.get("dirt", 0)
     #inventory_text = small_font.render(f"흙: {dirt_count}", True, WHITE); screen.blit(inventory_text, (20, 55))
-    # 핫바 설정
-    slot_size = 50
-    slot_margin = 10
+    
+    # 핫바 설정 (✨ 수정된 부분)
+    slot_size = 40  # 슬롯 크기 줄임 (기존 50)
+    slot_margin = 8 # 슬롯 간격 줄임 (기존 10)
     hotbar_width = (slot_size + slot_margin) * len(player.item_slots) - slot_margin
     hotbar_x = (SCREEN_WIDTH - hotbar_width) / 2
-    hotbar_y = SCREEN_HEIGHT - slot_size - 20
+    hotbar_y = SCREEN_HEIGHT - slot_size - 15 # 화면 하단과의 간격 조정
 
     # 각 슬롯을 순회하며 그리기
     for i, item_name in enumerate(player.item_slots):
@@ -203,11 +204,11 @@ def draw_ui(player):
         
         # 슬롯 배경
         slot_rect = pygame.Rect(slot_x, hotbar_y, slot_size, slot_size)
-        pygame.draw.rect(screen, GRAY, slot_rect, 4) # 배경 테두리
+        pygame.draw.rect(screen, GRAY, slot_rect, 3) # 배경 테두리 두께 조정
 
         # 선택된 슬롯이면 노란색으로 하이라이트
         if i == player.selected_slot:
-            pygame.draw.rect(screen, YELLOW, slot_rect, 6)
+            pygame.draw.rect(screen, YELLOW, slot_rect, 4) # 하이라이트 두께 조정
 
         # 슬롯에 아이템이 있다면 아이콘과 개수 표시
         if item_name is not None and player.inventory.get(item_name, 0) > 0:
@@ -217,8 +218,12 @@ def draw_ui(player):
             elif item_name == "stone":
                 item_color = STONE_COLOR
             
-            icon_rect = pygame.Rect(slot_x + 10, hotbar_y + 10, slot_size - 20, slot_size - 20)
+            # 아이콘 위치 및 크기 조정
+            icon_rect = pygame.Rect(slot_x + 7, hotbar_y + 7, slot_size - 14, slot_size - 14)
             pygame.draw.rect(screen, item_color, icon_rect)
+            
+            # ✨ 아이콘에 검정 테두리 추가
+            pygame.draw.rect(screen, BLACK, icon_rect, 2)
 
             # 아이템 개수 텍스트
             count = player.inventory.get(item_name, 0)
