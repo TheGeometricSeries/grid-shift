@@ -154,13 +154,13 @@ def main_game(map_data, world_name, start_pos=None):
                     is_vertically_close = (player_top_grid - (INTERACTION_RADIUS_Y + EXTRA_REACH_UP) <= mouse_grid_y <= player_bottom_grid + INTERACTION_RADIUS_Y)
                     is_close_enough = is_horizontally_close and is_vertically_close
                     
-                    # 2. 나머지 조건들 계산
+                    # 2. 나머지 모든 조건들을 계산
                     is_valid_grid_pos = 0 <= mouse_grid_y < len(world_grid) and 0 <= mouse_grid_x < len(world_grid[0]) and world_grid[mouse_grid_y][mouse_grid_x] is None
                     is_not_overlapping_player = not player.rect.colliderect(selected_tile_rect)
                     is_in_sight = has_line_of_sight(player_grid_pos, mouse_grid_pos, world_grid)
-                    has_item = player.inventory.get(player.selected_item, 0) > 0
+                    has_item = player.selected_item is not None and player.inventory.get(player.selected_item, 0) > 0 # ✨ 아이템 보유 여부 강화
 
-                    # 3. 지지 블록 확인
+                    # 3. 지지 블록이 있는지 확인
                     has_support = False
                     if is_valid_grid_pos:
                         if mouse_grid_y + 1 < len(world_grid) and world_grid[mouse_grid_y + 1][mouse_grid_x] is not None: has_support = True
@@ -170,23 +170,14 @@ def main_game(map_data, world_name, start_pos=None):
                                 if 0 <= check_y < len(world_grid) and 0 <= check_x < len(world_grid[0]) and world_grid[check_y][check_x] is not None:
                                     has_support = True; break
                     
-                    # 4. 최종 설치 결정
+                    # 4. 최종적으로 모든 조건이 참일 때만 블록을 설치
                     if all([is_valid_grid_pos, is_close_enough, is_not_overlapping_player, has_support, is_in_sight, has_item]):
                         player.start_placing()
                         player.inventory[player.selected_item] -= 1
-                        # 선택된 아이템에 맞는 타일 타입을 가져옴
-                    item_type_to_place = player.selected_item
-                    tile_type_to_place = ITEM_TO_TILE_TYPE.get(item_type_to_place, 1) # 기본값은 흙
-
-                    world_grid[mouse_grid_y][mouse_grid_x] = Tile(mouse_grid_x, mouse_grid_y, tile_type_to_place)
-                    # 선택된 아이템에 맞는 타일 타입을 가져옴
-                    item_type_to_place = player.selected_item
-                    tile_type_to_place = ITEM_TO_TILE_TYPE.get(item_type_to_place, 1) # 기본값은 흙
-
-                    try: 
+                        
+                        item_type_to_place = player.selected_item
+                        tile_type_to_place = ITEM_TO_TILE_TYPE.get(item_type_to_place, 1)
                         world_grid[mouse_grid_y][mouse_grid_x] = Tile(mouse_grid_x, mouse_grid_y, tile_type_to_place)
-                    except UnboundLocalError:
-                        pass
                 
                 elif event.button == 4:  # 위로 스크롤
                     player.change_slot(-1)
@@ -444,8 +435,10 @@ def main_game(map_data, world_name, start_pos=None):
             screen.blit(pixel_text_surf, (SCREEN_WIDTH - pixel_text_surf.get_width() - 10, 10))
             screen.blit(grid_text_surf, (SCREEN_WIDTH - grid_text_surf.get_width() - 10, 10 + pixel_text_surf.get_height()))
         # 설치 미리보기 로직
-        if player.inventory.get(player.selected_item, 0) > 0:
-            # can_place_preview 계산 로직을 위에서 사용한 로직과 통일
+        # 1. 선택된 아이템이 있고, 그 아이템을 1개 이상 가지고 있을 때만 미리보기를 그림
+        if player.selected_item is not None and player.inventory.get(player.selected_item, 0) > 0:
+            
+            # 2. 설치 가능 여부를 판단하기 위한 모든 조건을 계산
             player_left_grid = player.rect.left // TILE_SIZE
             player_right_grid = player.rect.right // TILE_SIZE
             player_top_grid = player.rect.top // TILE_SIZE
@@ -457,6 +450,7 @@ def main_game(map_data, world_name, start_pos=None):
             is_empty_tile = 0 <= mouse_grid_y < len(world_grid) and 0 <= mouse_grid_x < len(world_grid[0]) and world_grid[mouse_grid_y][mouse_grid_x] is None
             is_not_overlapping = not player.rect.colliderect(selected_tile_rect)
             is_in_sight = has_line_of_sight(player_grid_pos, mouse_grid_pos, world_grid)
+
             has_support = False
             if is_empty_tile:
                 if mouse_grid_y + 1 < len(world_grid) and world_grid[mouse_grid_y + 1][mouse_grid_x] is not None: has_support = True
@@ -466,11 +460,15 @@ def main_game(map_data, world_name, start_pos=None):
                         if 0 <= check_y < len(world_grid) and 0 <= check_x < len(world_grid[0]) and world_grid[check_y][check_x] is not None:
                             has_support = True; break
             
+            # 3. 모든 조건을 종합하여 최종적으로 설치 가능한지(can_place_preview)를 결정
             can_place_preview = all([is_close_enough, is_empty_tile, is_not_overlapping, is_in_sight, has_support])
+
+            # 4. 결과에 따라 미리보기 상자를 그림
             preview_surf = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
             color = (0, 255, 0, 120) if can_place_preview else (255, 0, 0, 120)
             preview_surf.fill(color)
             screen.blit(preview_surf, (selected_tile_rect.x - camera_x, selected_tile_rect.y - camera_y))
+
         # --- ✨ 디버깅용 시야 레이저 그리기 시작 ✨ ---
         # 1. 플레이어와 마우스 위치 사이에 시야가 확보되었는지 확인합니다.
         is_sight_clear = has_line_of_sight(player_grid_pos, mouse_grid_pos, world_grid)
