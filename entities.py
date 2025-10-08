@@ -387,7 +387,7 @@ class Player(Entity):
         self.torso_rect.bottomleft = self.rect.bottomleft
         self.torso_rect.y -= self.leg_length
         self.head_rect.midbottom = self.torso_rect.midtop
-        self.head_rect.x += 5 * self.facing_direction * self.scale_factor
+        self.head_rect.x += 2 * self.facing_direction * self.scale_factor
 
     def draw(self, screen, camera_x, camera_y):
         if self.invincible_timer > 0 and self.invincible_timer % 10 < 5: return
