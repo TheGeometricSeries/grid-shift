@@ -1,0 +1,5 @@
+# Python cache files
+__pycache__/
+
+# Saved world data
+saved_worlds/
