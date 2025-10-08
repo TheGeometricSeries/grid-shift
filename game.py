@@ -411,21 +411,22 @@ def main_game(map_data, world_name, start_pos=None):
 
         # Shift 키를 누르고 있을 때만 상호작용 박스와 좌표를 그림
         if show_interaction_box_and_xy:
-            # 상호작용 가능한 모든 타일 범위를 계산
+            # 1. 플레이어의 '실제 경계'를 기준으로 상호작용 범위를 계산 (판정 로직과 동일)
             player_left_grid = player.rect.left // TILE_SIZE
             player_right_grid = player.rect.right // TILE_SIZE
             player_top_grid = player.rect.top // TILE_SIZE
             player_bottom_grid = player.rect.bottom // TILE_SIZE
+            
             start_reach_x = player_left_grid - INTERACTION_RADIUS_X
             end_reach_x = player_right_grid + INTERACTION_RADIUS_X
             start_reach_y = player_top_grid - (INTERACTION_RADIUS_Y + EXTRA_REACH_UP)
             end_reach_y = player_bottom_grid + INTERACTION_RADIUS_Y
             
-            # 범위 내 모든 타일에 하나의 통일된 하이라이트를 그림
+            # 2. 계산된 범위 내의 모든 타일에 하이라이트를 그림
             for y in range(start_reach_y, end_reach_y + 1):
                 for x in range(start_reach_x, end_reach_x + 1):
                     if 0 <= y < len(world_grid) and 0 <= x < len(world_grid[0]):
-                        # ✨ 더 간단한 표시를 위해 secondary 하이라이트만 사용
+                        # ✨ 더 간단한 표시를 위해 하나의 하이라이트만 사용
                         screen.blit(highlight_surf_secondary, (x * TILE_SIZE - camera_x, y * TILE_SIZE - camera_y))
             # 좌표 표시
             math_pixel_y = SCREEN_HEIGHT - player.rect.bottom
