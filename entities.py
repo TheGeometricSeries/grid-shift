@@ -297,6 +297,8 @@ class Player(Entity):
         self.breaking_animation_timer = 0
         self.place_animation_timer = 0
         self.place_animation_duration = 15
+        
+        self.is_inventory_open = False
     
     @property
     def selected_item(self):

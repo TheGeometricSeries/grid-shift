@@ -5,7 +5,7 @@ from config import *
 from entities import *
 from world import get_nearby_tiles
 from utils import has_line_of_sight
-from ui import pause_screen, draw_ui
+from ui import pause_screen, draw_ui, inventory_screen
 
 # 블록 파괴 진행도를 시각화하는 함수 (새로 추가)
 def draw_break_progress(screen, target_tile_rect, break_timer, max_break_time, camera_x, camera_y):
@@ -185,17 +185,24 @@ def main_game(map_data, world_name, start_pos=None):
                     player.change_slot(1)
                     
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE: player.jump()
+                if event.key == pygame.K_SPACE:
+                    player.jump()
                 if event.key == pygame.K_ESCAPE:
-                    if pause_screen(world_grid, world_name, player.rect) == "QUIT_TO_TITLE":
-                        return "TITLE"
+                    if player.is_inventory_open: # ✨ 인벤토리가 열려있으면 닫음
+                        player.is_inventory_open = False
+                    else: # 아니면 일시정지 메뉴 호출
+                        if pause_screen(world_grid, world_name, player.rect) == "QUIT_TO_TITLE":
+                            return "TITLE"
+                
+                if event.key == pygame.K_e:
+                    player.is_inventory_open = not player.is_inventory_open # ✨ 상태 토글
                     # 숫자 키로 슬롯 직접 선택
-                if event.key == pygame.K_1: player.select_slot(0)
-                if event.key == pygame.K_2: player.select_slot(1)
-                if event.key == pygame.K_3: player.select_slot(2)
-                if event.key == pygame.K_4: player.select_slot(3)
-                if event.key == pygame.K_5: player.select_slot(4)
-        
+                if not player.is_inventory_open: # ✨ 조건 추가
+                    if event.key == pygame.K_1: player.select_slot(0)
+                    if event.key == pygame.K_2: player.select_slot(1)
+                    if event.key == pygame.K_3: player.select_slot(2)
+                    if event.key == pygame.K_4: player.select_slot(3)
+                    if event.key == pygame.K_5: player.select_slot(4)
         # 업데이트
         player.update([t.rect for t in get_nearby_tiles(player.rect, world_grid) if t])
         
@@ -484,6 +491,10 @@ def main_game(map_data, world_name, start_pos=None):
         # 4. 계산된 위치와 색상으로 화면에 얇은 선을 그립니다.
         pygame.draw.line(screen, laser_color, start_laser_pos, end_laser_pos, 2)
         # --- 디버깅용 시야 레이저 그리기 끝 ---
+
+        # 인벤토리가 열려있을 때만 inventory_screen을 호출하여 그림
+        if player.is_inventory_open:
+            inventory_screen(screen, player) # ✨ 수정된 inventory_screen 함수 호출 (clock 인자 삭제)
 
         draw_ui(player)
         pygame.display.update()

@@ -1,6 +1,3 @@
-# ui.py
-# 이 파일의 내용 전체를 복사해서 붙여넣으세요.
-
 import pygame
 import sys
 import os
@@ -243,3 +240,79 @@ def game_over_screen():
             if restart_btn.is_clicked(event): return "RESTART"
             if quit_btn.is_clicked(event): return "TITLE"
         pygame.display.update(); clock.tick(FPS)
+
+def inventory_screen(screen, player): # ✨ clock 인자 삭제
+    """인벤토리 화면을 그리는 함수 (게임 루프 안에서 호출됨)"""
+    
+    # 뒷배경을 어둡게 만들기 위한 반투명 Surface
+    overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+    overlay.fill((0, 0, 0, 180)) # 마지막 값(180)이 투명도
+
+    # 인벤토리 창 설정
+    inv_width, inv_height = 500, 300
+    inv_x = (SCREEN_WIDTH - inv_width) / 2
+    inv_y = (SCREEN_HEIGHT - inv_height) / 2
+    inv_rect = pygame.Rect(inv_x, inv_y, inv_width, inv_height)
+
+    # 슬롯 설정
+    slot_size = 50
+    slot_margin = 15
+    cols = 8 # 가로 슬롯 개수
+    
+    # 그리기
+    screen.blit(overlay, (0, 0)) # 어두운 뒷배경
+    pygame.draw.rect(screen, (50, 50, 50), inv_rect) # 인벤토리 창 배경
+    pygame.draw.rect(screen, GRAY, inv_rect, 3)    # 인벤토리 창 테두리
+
+    # 인벤토리에 있는 아이템들을 순서대로 슬롯에 그리기
+    item_list = list(player.inventory.items())
+    
+    # 실제로 아이템이 있는 슬롯만 필터링하여 그립니다.
+    # 핫바 슬롯은 draw_ui에서 이미 그려지므로, 인벤토리 창은 일반 인벤토리 슬롯만 그립니다.
+    current_col = 0
+    current_row = 0
+    max_cols = (inv_width - 2 * slot_margin) // (slot_size + slot_margin) # 창 크기에 맞는 최대 컬럼 계산
+    max_rows = (inv_height - 2 * slot_margin) // (slot_size + slot_margin) # 창 크기에 맞는 최대 로우 계산
+
+    drawn_count = 0
+    for item_name, count in item_list:
+        if count <= 0: continue # 개수가 0개 이하면 그리지 않음
+
+        # 핫바 슬롯에 이미 있는 아이템이라면 건너뛰는 로직은 지금은 복잡하므로 일단 생략
+        # 나중에 인벤토리 정렬 및 핫바와의 연동 시 추가 고려
+
+        row = drawn_count // max_cols
+        col = drawn_count % max_cols
+        
+        if row >= max_rows: break # 인벤토리 창 범위를 벗어나면 중단
+
+        # 슬롯 위치 계산
+        slot_x = inv_x + slot_margin + col * (slot_size + slot_margin)
+        slot_y = inv_y + slot_margin + row * (slot_size + slot_margin)
+        slot_rect = pygame.Rect(slot_x, slot_y, slot_size, slot_size)
+
+        # 슬롯 배경 및 아이콘 그리기
+        pygame.draw.rect(screen, (80, 80, 80), slot_rect)
+        pygame.draw.rect(screen, GRAY, slot_rect, 2)
+
+        if item_name == "dirt" or item_name == "grass": item_color = DIRT_COLOR
+        elif item_name == "stone": item_color = STONE_COLOR
+        else: item_color = WHITE
+        
+        icon_rect = pygame.Rect(slot_x + 10, slot_y + 10, slot_size - 20, slot_size - 20)
+        pygame.draw.rect(screen, item_color, icon_rect)
+
+        # 아이템 개수 텍스트
+        count_surf = small_font.render(str(count), True, WHITE)
+        count_rect = count_surf.get_rect(bottomright=(slot_x + slot_size - 5, slot_y + slot_size - 5))
+        screen.blit(count_surf, count_rect)
+        
+        drawn_count += 1 # 그려진 아이템 개수 증가
+
+    # 핫바는 draw_ui에서 따로 그려지므로 여기서는 그리지 않습니다.
+    # draw_hotbar(screen, player) # 이 부분은 삭제
+
+    # 인벤토리 제목
+    title_surf = button_font.render(STRINGS.get("inventory_title", "인벤토리"), True, WHITE)
+    title_rect = title_surf.get_rect(center=(SCREEN_WIDTH / 2, inv_y - 20))
+    screen.blit(title_surf, title_rect)
