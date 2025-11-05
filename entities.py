@@ -17,12 +17,12 @@ class Particle:
 
 class Tile:
     def __init__(self, x, y, tile_type):
-        self.rect = pygame.Rect(x * BASE_TILE_SIZE, y * BASE_TILE_SIZE, BASE_TILE_SIZE, BASE_TILE_SIZE)
+        self.rect = pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
         self.type = tile_type
         if self.type == 3: # 타입이 3(돌)이면
-            self.max_health = 300 # 체력을 300으로 설정 (흙보다 3배 단단함)
-        elif self.type == 4: # 타입이 4(나무)이면
-            self.max_health = 200 # 체력을 200으로 설정
+            self.max_health = 200 # 체력을 200으로 설정 (흙보다 2배 단단함)
+        #elif self.type == ?:
+        #    self.max_health = 300
         else:
             self.max_health = 100 # 나머지는 100
         
@@ -37,18 +37,14 @@ class Tile:
             block_color = DIRT_COLOR
         elif self.type == 3: # 돌
             block_color = STONE_COLOR
-        elif self.type == 4: # 나무
-            block_color = WOOD_COLOR
-        elif self.type == 5:
-            block_color = LEAF_COLOR
         else: # 혹시 모를 기본값
             block_color = DIRT_COLOR
             
-        pygame.draw.rect(screen, block_color, (screen_x, screen_y, BASE_TILE_SIZE, BASE_TILE_SIZE))
+        pygame.draw.rect(screen, block_color, (screen_x, screen_y, TILE_SIZE, TILE_SIZE))
         
         # 잔디 블록이면 위에 잔디를 덧그림 (기존과 동일)
         if self.type == 2:
-            pygame.draw.rect(screen, GRASS_COLOR, (screen_x, screen_y, BASE_TILE_SIZE, 10))
+            pygame.draw.rect(screen, GRASS_COLOR, (screen_x, screen_y, TILE_SIZE, 10))
         if self.health < self.max_health and self.crack_lines:
             crack_progress = 1 - (self.health / self.max_health)
             lines_to_draw = int(len(self.crack_lines) * crack_progress)
@@ -64,11 +60,11 @@ class Tile:
     def _generate_crack(self):
         self.crack_lines = []
         edge = random.choice(['top', 'bottom', 'left', 'right'])
-        if edge == 'top': point = pygame.Vector2(random.randint(0, BASE_TILE_SIZE), 0)
-        elif edge == 'bottom': point = pygame.Vector2(random.randint(0, BASE_TILE_SIZE), BASE_TILE_SIZE)
-        elif edge == 'left': point = pygame.Vector2(0, random.randint(0, BASE_TILE_SIZE))
-        else: point = pygame.Vector2(BASE_TILE_SIZE, random.randint(0, BASE_TILE_SIZE))
-        center_point = pygame.Vector2(BASE_TILE_SIZE/2, BASE_TILE_SIZE/2)
+        if edge == 'top': point = pygame.Vector2(random.randint(0, TILE_SIZE), 0)
+        elif edge == 'bottom': point = pygame.Vector2(random.randint(0, TILE_SIZE), TILE_SIZE)
+        elif edge == 'left': point = pygame.Vector2(0, random.randint(0, TILE_SIZE))
+        else: point = pygame.Vector2(TILE_SIZE, random.randint(0, TILE_SIZE))
+        center_point = pygame.Vector2(TILE_SIZE/2, TILE_SIZE/2)
         direction_vector = center_point - point
         angle = direction_vector.angle_to(pygame.Vector2(1, 0))
         for _ in range(15):
@@ -77,8 +73,8 @@ class Tile:
             length = random.uniform(5, 10)
             point.x += length * math.cos(math.radians(angle))
             point.y -= length * math.sin(math.radians(angle))
-            point.x = max(0, min(BASE_TILE_SIZE, point.x))
-            point.y = max(0, min(BASE_TILE_SIZE, point.y))
+            point.x = max(0, min(TILE_SIZE, point.x))
+            point.y = max(0, min(TILE_SIZE, point.y))
             end_point = point.copy()
             self.crack_lines.append((start_point, end_point))
 
@@ -256,10 +252,6 @@ class ItemDrop(Entity):
             color = GRASS_COLOR
         elif self.item_type == "stone":
             color = STONE_COLOR
-        elif self.item_type == "wood":
-            color = WOOD_COLOR
-        elif self.item_type == "leaf":
-            color - LEAF_COLOR
         else: # 기본값은 흙
             color = DIRT_COLOR
         pygame.draw.rect(original_surf, color, original_surf.get_rect())
@@ -507,11 +499,11 @@ class Enemy(Entity):
         if self.attack_timer > 0: self.attack_timer -= 1
         distance = pygame.math.Vector2(self.rect.center).distance_to(player.rect.center)
         # 1. 시야 확인을 위한 그리드 좌표들을 가져옵니다.
-        start_grid_pos = (self.head_rect.centerx // BASE_TILE_SIZE, self.head_rect.centery // BASE_TILE_SIZE)
-        head_grid_pos = (player.head_rect.centerx // BASE_TILE_SIZE, player.head_rect.centery // BASE_TILE_SIZE)
-        torso_grid_pos = (player.torso_rect.centerx // BASE_TILE_SIZE, player.torso_rect.centery // BASE_TILE_SIZE)
+        start_grid_pos = (self.head_rect.centerx // TILE_SIZE, self.head_rect.centery // TILE_SIZE)
+        head_grid_pos = (player.head_rect.centerx // TILE_SIZE, player.head_rect.centery // TILE_SIZE)
+        torso_grid_pos = (player.torso_rect.centerx // TILE_SIZE, player.torso_rect.centery // TILE_SIZE)
         feet_pos = (player.rect.centerx, player.rect.bottom - 5)
-        feet_grid_pos = (feet_pos[0] // BASE_TILE_SIZE, feet_pos[1] // BASE_TILE_SIZE)
+        feet_grid_pos = (feet_pos[0] // TILE_SIZE, feet_pos[1] // TILE_SIZE)
 
         # 2. world.py의 정확한 함수를 사용하여 세 지점 모두 검사합니다.
         can_see_head = has_line_of_sight(start_grid_pos, head_grid_pos, world_grid)

@@ -27,21 +27,21 @@ def draw_break_progress(screen, target_tile_rect, break_timer, max_break_time, c
     for i in range(line_count):
         # 중앙에서 랜덤한 방향으로 짧은 선 그리기
         start_x, start_y = screen_rect.center
-        end_x = start_x + random.randint(-BASE_TILE_SIZE // 3, BASE_TILE_SIZE // 3)
-        end_y = start_y + random.randint(-BASE_TILE_SIZE // 3, BASE_TILE_SIZE // 3)
+        end_x = start_x + random.randint(-TILE_SIZE // 3, TILE_SIZE // 3)
+        end_y = start_y + random.randint(-TILE_SIZE // 3, TILE_SIZE // 3)
         pygame.draw.line(screen, WHITE, (start_x, start_y), (end_x, end_y), 2)
     
     # 2단계: 진행도에 따라 중앙에 검은색으로 파인 부분 표현
     # 파인 부분의 크기를 진행도에 비례하여 조절
-    dig_radius = int((BASE_TILE_SIZE / 4) * progress)
+    dig_radius = int((TILE_SIZE / 4) * progress)
     if dig_radius > 0:
         pygame.draw.circle(screen, BLACK, screen_rect.center, dig_radius)
 
 def main_game(map_data, world_name, start_pos=None):
     MAP_WIDTH = len(map_data[0])
     MAP_HEIGHT = len(map_data)
-    map_width_pixels = MAP_WIDTH * BASE_TILE_SIZE
-    map_height_pixels = MAP_HEIGHT * BASE_TILE_SIZE
+    map_width_pixels = MAP_WIDTH * TILE_SIZE
+    map_height_pixels = MAP_HEIGHT * TILE_SIZE
 
     # ✨ 1. 전체 크기를 가지지만 비어있는 world_grid를 생성
     world_grid = [[None for _ in range(MAP_WIDTH)] for _ in range(MAP_HEIGHT)]
@@ -50,8 +50,7 @@ def main_game(map_data, world_name, start_pos=None):
     ITEM_TO_TILE_TYPE = {
         "dirt": 1,
         "grass": 1, # '잔디' 아이템도 설치 시에는 흙(1)으로 설치됩니다.
-        "stone": 3,
-        "wood": 4
+        "stone": 3
     }
     particles, item_drops, grass_spread_timer = [], [], 0
     break_timer = 0
@@ -63,7 +62,7 @@ def main_game(map_data, world_name, start_pos=None):
     
     enemy = Enemy(600, 0, int(35 * 0.75), int(70 * 0.75))
     # 적의 시작 y 위치를 땅 위에 맞게 조정
-    col_x = enemy.rect.centerx // BASE_TILE_SIZE
+    col_x = enemy.rect.centerx // TILE_SIZE
     is_on_ground = False
     if 0 <= col_x < len(world_grid[0]):
         # 아래로 내려가면서 첫 번째 땅을 찾음
@@ -82,22 +81,22 @@ def main_game(map_data, world_name, start_pos=None):
     EXTRA_REACH_UP = 1       # 위쪽 추가 반경
 
     # 1. 기본 상호작용 범위를 표시할 Surface (Alpha: 50)
-    highlight_surf_primary = pygame.Surface((BASE_TILE_SIZE, BASE_TILE_SIZE), pygame.SRCALPHA)
+    highlight_surf_primary = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
     highlight_surf_primary.fill((200, 200, 255, 40)) 
     # 2. 확장된 범위를 표시할 더 투명한 Surface (Alpha: 25)
-    highlight_surf_secondary = pygame.Surface((BASE_TILE_SIZE, BASE_TILE_SIZE), pygame.SRCALPHA)
+    highlight_surf_secondary = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
     highlight_surf_secondary.fill((200, 200, 255, 25))
 
     camera_x, camera_y = 0, 0
     running = True
     while running:
-        clock.tick(BASE_FPS)
+        clock.tick(FPS)
         mouse_pos = pygame.mouse.get_pos()
         mouse_world_pos = (mouse_pos[0] + camera_x, mouse_pos[1] + camera_y)
-        mouse_grid_x, mouse_grid_y = int(mouse_world_pos[0] // BASE_TILE_SIZE), int(mouse_world_pos[1] // BASE_TILE_SIZE)
-        selected_tile_rect = pygame.Rect(mouse_grid_x * BASE_TILE_SIZE, mouse_grid_y * BASE_TILE_SIZE, BASE_TILE_SIZE, BASE_TILE_SIZE)
+        mouse_grid_x, mouse_grid_y = int(mouse_world_pos[0] // TILE_SIZE), int(mouse_world_pos[1] // TILE_SIZE)
+        selected_tile_rect = pygame.Rect(mouse_grid_x * TILE_SIZE, mouse_grid_y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
         # 3. 현재 플레이어 위치를 기준으로 필요한 청크 범위를 계산
-        player_chunk_x = player.rect.centerx // (CHUNK_SIZE * BASE_TILE_SIZE)
+        player_chunk_x = player.rect.centerx // (CHUNK_SIZE * TILE_SIZE)
         load_radius = 2 # 플레이어 주변으로 2청크까지 로드 (화면 + 버퍼)
 
         required_chunks = set()
@@ -134,7 +133,7 @@ def main_game(map_data, world_name, start_pos=None):
         loaded_chunks = required_chunks
 
         # ✨ 플레이어의 그리드 좌표를 미리 계산
-        player_grid_pos = (player.head_rect.centerx // BASE_TILE_SIZE, player.head_rect.centery // BASE_TILE_SIZE) # 수정된 코드 (머리 기준)
+        player_grid_pos = (player.head_rect.centerx // TILE_SIZE, player.head_rect.centery // TILE_SIZE) # 수정된 코드 (머리 기준)
         mouse_grid_pos = (mouse_grid_x, mouse_grid_y)
         
         # 이벤트 처리
@@ -146,10 +145,10 @@ def main_game(map_data, world_name, start_pos=None):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 3:
                     # 1. 플레이어의 실제 경계를 기준으로 상호작용 가능 여부를 정확히 계산
-                    player_left_grid = player.rect.left // BASE_TILE_SIZE
-                    player_right_grid = player.rect.right // BASE_TILE_SIZE
-                    player_top_grid = player.rect.top // BASE_TILE_SIZE
-                    player_bottom_grid = player.rect.bottom // BASE_TILE_SIZE
+                    player_left_grid = player.rect.left // TILE_SIZE
+                    player_right_grid = player.rect.right // TILE_SIZE
+                    player_top_grid = player.rect.top // TILE_SIZE
+                    player_bottom_grid = player.rect.bottom // TILE_SIZE
 
                     is_horizontally_close = (player_left_grid - INTERACTION_RADIUS_X <= mouse_grid_x <= player_right_grid + INTERACTION_RADIUS_X)
                     is_vertically_close = (player_top_grid - (INTERACTION_RADIUS_Y + EXTRA_REACH_UP) <= mouse_grid_y <= player_bottom_grid + INTERACTION_RADIUS_Y)
@@ -205,32 +204,20 @@ def main_game(map_data, world_name, start_pos=None):
                     if event.key == pygame.K_4: player.select_slot(3)
                     if event.key == pygame.K_5: player.select_slot(4)
         # 업데이트
-        # 1. 화면에 보이는 타일 목록 계산 (새로 추가되거나 위치 이동)
-        start_col = max(0, int(camera_x // BASE_TILE_SIZE))
-        end_col = min(len(world_grid[0]), int((camera_x + SCREEN_WIDTH) // BASE_TILE_SIZE) + 2)
-        start_row = max(0, int(camera_y // BASE_TILE_SIZE))
-        end_row = min(len(world_grid), int((camera_y + SCREEN_HEIGHT) // BASE_TILE_SIZE) + 2)
-        visible_tiles = [world_grid[y][x] for y in range(start_row, end_row) for x in range(start_col, end_col) if world_grid[y][x]]
-
-        # 2. 충돌을 검사할 '단단한(solid)' 블록만 필터링하여 사각형 목록을 만듭니다.
-        solid_tile_rects = [t.rect for t in visible_tiles if t.type not in NON_SOLID_BLOCKS]
-
-        # 3. 필터링된 '단단한' 블록 목록을 각 객체의 업데이트 함수에 전달합니다.
-        player.update(solid_tile_rects)
-
+        player.update([t.rect for t in get_nearby_tiles(player.rect, world_grid) if t])
+        
         # --- ✨ 아이템 업데이트 로직 최종 수정 ✨ ---
         all_item_rects = [item.rect for item in item_drops]
         for item in item_drops:
             # 1. '생각': 불안정한지 확인해서 회전 속도를 결정
-            # ✨ 아이템의 지지대 목록에도 solid_tile_rects를 사용해주는 것이 더 정확합니다.
-            supporters = [r for r in all_item_rects if r is not item.rect] + solid_tile_rects
+            supporters = [r for r in all_item_rects if r is not item.rect] + [t.rect for t in get_nearby_tiles(item.rect, world_grid) if t]
             item.check_stability(supporters)
 
-            # ✨ 여기도 solid_tile_rects를 사용합니다.
-            colliders = [r for r in all_item_rects if r is not item.rect] + solid_tile_rects
+            # 2. '행동': 결정된 속도를 바탕으로 위치와 각도를 업데이트
+            colliders = [r for r in all_item_rects if r is not item.rect] + [t.rect for t in get_nearby_tiles(item.rect, world_grid) if t]
             item.update(colliders, player)
 
-        player_body_grid_pos = (player.rect.centerx // BASE_TILE_SIZE, player.rect.centery // BASE_TILE_SIZE)
+        player_body_grid_pos = (player.rect.centerx // TILE_SIZE, player.rect.centery // TILE_SIZE)
 
         # 플레이어 아이템 획득
         for item in item_drops[:]:
@@ -238,12 +225,12 @@ def main_game(map_data, world_name, start_pos=None):
             if player.rect.colliderect(item.rect):
                 
                 # 시야 확인을 위한 기준점 3개 설정
-                head_grid_pos = (player.head_rect.centerx // BASE_TILE_SIZE, player.head_rect.centery // BASE_TILE_SIZE)
-                torso_grid_pos = (player.torso_rect.centerx // BASE_TILE_SIZE, player.torso_rect.centery // BASE_TILE_SIZE)
+                head_grid_pos = (player.head_rect.centerx // TILE_SIZE, player.head_rect.centery // TILE_SIZE)
+                torso_grid_pos = (player.torso_rect.centerx // TILE_SIZE, player.torso_rect.centery // TILE_SIZE)
                 feet_pos = (player.rect.centerx, player.rect.bottom - 5) # 발 위치 근사치
-                feet_grid_pos = (feet_pos[0] // BASE_TILE_SIZE, feet_pos[1] // BASE_TILE_SIZE)
+                feet_grid_pos = (feet_pos[0] // TILE_SIZE, feet_pos[1] // TILE_SIZE)
                 
-                item_grid_pos = (item.rect.centerx // BASE_TILE_SIZE, item.rect.centery // BASE_TILE_SIZE)
+                item_grid_pos = (item.rect.centerx // TILE_SIZE, item.rect.centery // TILE_SIZE)
 
                 # 조건 2: 머리, 몸, 발 중 하나라도 시야가 확보되었는가?
                 is_sight_clear = (
@@ -265,11 +252,11 @@ def main_game(map_data, world_name, start_pos=None):
         # --- ▼▼▼ 적-플레이어 충돌 확인 코드 추가 ▼▼▼ ---
         for enemy in enemies:
             # 1. 적 주변의 타일 정보를 가져옵니다 (update에 필요).
-            nearby_tile_rects = [t.rect for t in get_nearby_tiles(enemy.rect, world_grid) if t] # <--- 이 줄을 삭제하세요!
+            nearby_tile_rects = [t.rect for t in get_nearby_tiles(enemy.rect, world_grid) if t]
             
             # 2. 적의 상태를 업데이트합니다 (player 객체 전체를 전달).
             # 이 안에서 시야 확인(머리,몸,발)이 모두 이루어집니다.
-            enemy.update(nearby_tile_rects, player, world_grid) # <--- 이 줄도 삭제하세요!
+            enemy.update(nearby_tile_rects, player, world_grid) # ✨ world_grid 추가
             
             # 3. 만약 적이 공격 중이고 몽둥이가 플레이어와 닿았다면 데미지를 줍니다.
             if enemy.club_world_rect and player.rect.colliderect(enemy.club_world_rect):
@@ -277,10 +264,10 @@ def main_game(map_data, world_name, start_pos=None):
         
         # 블록 파괴
         mouse_buttons = pygame.mouse.get_pressed()
-        player_left_grid = player.rect.left // BASE_TILE_SIZE
-        player_right_grid = player.rect.right // BASE_TILE_SIZE
-        player_top_grid = player.rect.top // BASE_TILE_SIZE
-        player_bottom_grid = player.rect.bottom // BASE_TILE_SIZE
+        player_left_grid = player.rect.left // TILE_SIZE
+        player_right_grid = player.rect.right // TILE_SIZE
+        player_top_grid = player.rect.top // TILE_SIZE
+        player_bottom_grid = player.rect.bottom // TILE_SIZE
 
         is_horizontally_close = (player_left_grid - INTERACTION_RADIUS_X <= mouse_grid_x <= player_right_grid + INTERACTION_RADIUS_X)
         is_vertically_close = (player_top_grid - (INTERACTION_RADIUS_Y + EXTRA_REACH_UP) <= mouse_grid_y <= player_bottom_grid + INTERACTION_RADIUS_Y)
@@ -316,9 +303,9 @@ def main_game(map_data, world_name, start_pos=None):
         camera_x = max(0, min(camera_x, map_width_pixels - SCREEN_WIDTH))
         camera_y = max(0, min(camera_y, map_height_pixels - SCREEN_HEIGHT))
         screen.fill(SKY_COLOR)
-        start_col, end_row = max(0, int(camera_x // BASE_TILE_SIZE)), min(len(world_grid), int((camera_y + SCREEN_HEIGHT) // BASE_TILE_SIZE) + 2)
-        end_col = min(len(world_grid[0]), int((camera_x + SCREEN_WIDTH) // BASE_TILE_SIZE) + 2)
-        start_row = max(0, int(camera_y // BASE_TILE_SIZE))
+        start_col, end_row = max(0, int(camera_x // TILE_SIZE)), min(len(world_grid), int((camera_y + SCREEN_HEIGHT) // TILE_SIZE) + 2)
+        end_col = min(len(world_grid[0]), int((camera_x + SCREEN_WIDTH) // TILE_SIZE) + 2)
+        start_row = max(0, int(camera_y // TILE_SIZE))
 
         # --- ▼▼▼ 플레이어 사망 확인 코드 추가 ▼▼▼ ---
         if player.health <= 0:
@@ -361,7 +348,6 @@ def main_game(map_data, world_name, start_pos=None):
                             tile.time_covered = 0
                     else:
                         tile.time_covered = 0 # 덮여있지 않으면 타이머 리셋
-                        
         for y in range(start_row, end_row):
             for x in range(start_col, end_col):
                 if world_grid[y][x]: world_grid[y][x].draw(screen, camera_x, camera_y, world_grid, x, y)
@@ -373,8 +359,8 @@ def main_game(map_data, world_name, start_pos=None):
             # 1. 설치 가능 여부를 판단하기 위한 모든 조건을 계산합니다.
             
             # 거리 조건 (새로운 방식)
-            rounded_grid_x = int(round(player.rect.centerx / BASE_TILE_SIZE))
-            rounded_grid_y = int(round(player.rect.centery / BASE_TILE_SIZE))
+            rounded_grid_x = int(round(player.rect.centerx / TILE_SIZE))
+            rounded_grid_y = int(round(player.rect.centery / TILE_SIZE))
             dist_x = abs(mouse_grid_x - rounded_grid_x)
             y_offset = rounded_grid_y - mouse_grid_y
             is_horizontally_close = (dist_x <= INTERACTION_RADIUS_X)
@@ -402,7 +388,7 @@ def main_game(map_data, world_name, start_pos=None):
             can_place_preview = all([is_close_enough, is_empty_tile, is_not_overlapping, is_in_sight, has_support])
 
             # 3. 결과에 따라 미리보기 상자를 그립니다.
-            preview_surf = pygame.Surface((BASE_TILE_SIZE, BASE_TILE_SIZE), pygame.SRCALPHA)
+            preview_surf = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
             color = (0, 255, 0, 120) if can_place_preview else (255, 0, 0, 120)
             preview_surf.fill(color)
             screen.blit(preview_surf, (selected_tile_rect.x - camera_x, selected_tile_rect.y - camera_y))
@@ -410,14 +396,14 @@ def main_game(map_data, world_name, start_pos=None):
             outline_rect = selected_tile_rect.move(-camera_x, -camera_y)
             pygame.draw.rect(screen, YELLOW, outline_rect, 3)
         if breaking_tile_coords is not None:
-            breaking_rect = pygame.Rect(breaking_tile_coords[0] * BASE_TILE_SIZE, breaking_tile_coords[1] * BASE_TILE_SIZE, BASE_TILE_SIZE, BASE_TILE_SIZE)
+            breaking_rect = pygame.Rect(breaking_tile_coords[0] * TILE_SIZE, breaking_tile_coords[1] * TILE_SIZE, TILE_SIZE, TILE_SIZE)
             draw_break_progress(screen, breaking_rect, break_timer, MAX_BREAK_TIME, camera_x, camera_y)
 
         # 새로운 상호작용 가능 여부 계산 로직 (미리보기와 하이라이트가 공통으로 사용)
-        player_left_grid = player.rect.left // BASE_TILE_SIZE
-        player_right_grid = player.rect.right // BASE_TILE_SIZE
-        player_top_grid = player.rect.top // BASE_TILE_SIZE
-        player_bottom_grid = player.rect.bottom // BASE_TILE_SIZE
+        player_left_grid = player.rect.left // TILE_SIZE
+        player_right_grid = player.rect.right // TILE_SIZE
+        player_top_grid = player.rect.top // TILE_SIZE
+        player_bottom_grid = player.rect.bottom // TILE_SIZE
         
         # Shift 키가 눌렸는지 확인
         keys = pygame.key.get_pressed()
@@ -426,10 +412,10 @@ def main_game(map_data, world_name, start_pos=None):
         # Shift 키를 누르고 있을 때만 상호작용 박스와 좌표를 그림
         if show_interaction_box_and_xy:
             # 1. 플레이어의 '실제 경계'를 기준으로 상호작용 범위를 계산 (판정 로직과 동일)
-            player_left_grid = player.rect.left // BASE_TILE_SIZE
-            player_right_grid = player.rect.right // BASE_TILE_SIZE
-            player_top_grid = player.rect.top // BASE_TILE_SIZE
-            player_bottom_grid = player.rect.bottom // BASE_TILE_SIZE
+            player_left_grid = player.rect.left // TILE_SIZE
+            player_right_grid = player.rect.right // TILE_SIZE
+            player_top_grid = player.rect.top // TILE_SIZE
+            player_bottom_grid = player.rect.bottom // TILE_SIZE
             
             start_reach_x = player_left_grid - INTERACTION_RADIUS_X
             end_reach_x = player_right_grid + INTERACTION_RADIUS_X
@@ -441,13 +427,13 @@ def main_game(map_data, world_name, start_pos=None):
                 for x in range(start_reach_x, end_reach_x + 1):
                     if 0 <= y < len(world_grid) and 0 <= x < len(world_grid[0]):
                         # ✨ 더 간단한 표시를 위해 하나의 하이라이트만 사용
-                        screen.blit(highlight_surf_secondary, (x * BASE_TILE_SIZE - camera_x, y * BASE_TILE_SIZE - camera_y))
+                        screen.blit(highlight_surf_secondary, (x * TILE_SIZE - camera_x, y * TILE_SIZE - camera_y))
             # 좌표 표시
             math_pixel_y = SCREEN_HEIGHT - player.rect.bottom
-            math_grid_y = math_pixel_y // BASE_TILE_SIZE
+            math_grid_y = math_pixel_y // TILE_SIZE
             
             pixel_pos_text = f"Pixel: ({player.rect.x}, {math_pixel_y})"
-            grid_pos_text = f"Grid: ({player.rect.x // BASE_TILE_SIZE}, {math_grid_y})"
+            grid_pos_text = f"Grid: ({player.rect.x // TILE_SIZE}, {math_grid_y})"
 
             # 2. 폰트를 사용해 텍스트를 이미지(Surface)로 렌더링합니다.
             pixel_text_surf = small_font.render(pixel_pos_text, True, WHITE)
@@ -461,10 +447,10 @@ def main_game(map_data, world_name, start_pos=None):
         if player.selected_item is not None and player.inventory.get(player.selected_item, 0) > 0:
             
             # 2. 설치 가능 여부를 판단하기 위한 모든 조건을 계산
-            player_left_grid = player.rect.left // BASE_TILE_SIZE
-            player_right_grid = player.rect.right // BASE_TILE_SIZE
-            player_top_grid = player.rect.top // BASE_TILE_SIZE
-            player_bottom_grid = player.rect.bottom // BASE_TILE_SIZE
+            player_left_grid = player.rect.left // TILE_SIZE
+            player_right_grid = player.rect.right // TILE_SIZE
+            player_top_grid = player.rect.top // TILE_SIZE
+            player_bottom_grid = player.rect.bottom // TILE_SIZE
             is_horizontally_close = (player_left_grid - INTERACTION_RADIUS_X <= mouse_grid_x <= player_right_grid + INTERACTION_RADIUS_X)
             is_vertically_close = (player_top_grid - (INTERACTION_RADIUS_Y + EXTRA_REACH_UP) <= mouse_grid_y <= player_bottom_grid + INTERACTION_RADIUS_Y)
             is_close_enough = is_horizontally_close and is_vertically_close
@@ -486,7 +472,7 @@ def main_game(map_data, world_name, start_pos=None):
             can_place_preview = all([is_close_enough, is_empty_tile, is_not_overlapping, is_in_sight, has_support])
 
             # 4. 결과에 따라 미리보기 상자를 그림
-            preview_surf = pygame.Surface((BASE_TILE_SIZE, BASE_TILE_SIZE), pygame.SRCALPHA)
+            preview_surf = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
             color = (0, 255, 0, 120) if can_place_preview else (255, 0, 0, 120)
             preview_surf.fill(color)
             screen.blit(preview_surf, (selected_tile_rect.x - camera_x, selected_tile_rect.y - camera_y))
@@ -558,15 +544,15 @@ def main_game(map_data, world_name, start_pos=None):
         
         # 2. 화면을 다시 그립니다. (이하 코드는 동일)
         screen.fill(SKY_COLOR)
-        start_col_death = max(0, int(camera_x // BASE_TILE_SIZE))
-        end_col_death = min(len(world_grid[0]), int((camera_x + SCREEN_WIDTH) // BASE_TILE_SIZE) + 2)
-        start_row_death = max(0, int(camera_y // BASE_TILE_SIZE))
-        end_row_death = min(len(world_grid), int((camera_y + SCREEN_HEIGHT) // BASE_TILE_SIZE) + 2)
+        start_col_death = max(0, int(camera_x // TILE_SIZE))
+        end_col_death = min(len(world_grid[0]), int((camera_x + SCREEN_WIDTH) // TILE_SIZE) + 2)
+        start_row_death = max(0, int(camera_y // TILE_SIZE))
+        end_row_death = min(len(world_grid), int((camera_y + SCREEN_HEIGHT) // TILE_SIZE) + 2)
         for y in range(start_row_death, end_row_death):
             for x in range(start_col_death, end_col_death):
                 if world_grid[y][x]: world_grid[y][x].draw(screen, camera_x, camera_y, world_grid, x, y)
         for d in debris: d.draw(screen, camera_x, camera_y)
         draw_ui(player)
-        pygame.display.update(); clock.tick(BASE_FPS)
+        pygame.display.update(); clock.tick(FPS)
     
     return "GAME_OVER"

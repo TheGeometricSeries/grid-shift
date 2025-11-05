@@ -3,7 +3,7 @@ import os
 import random
 from perlin_noise import PerlinNoise
 from entities import Tile
-from config import TILE_SIZE, SAVE_FOLDER, WOOD, LEAF
+from config import TILE_SIZE, SAVE_FOLDER
 
 def get_nearby_tiles(entity_rect, world_grid):
     nearby_tiles = []
@@ -26,57 +26,32 @@ def generate_map_data(width, height, seed, frequency, octaves):
     
     for x in range(width):
         noise_val = surface_noise(x * 0.05)
+        # terrain_height 계산을 안정적인 값으로 조정
         terrain_height = int(height / 2 + noise_val * (height / 4))
-        terrain_height = max(5, min(height - 5, terrain_height))
-        for y in range(terrain_height, height):
-            map_data[y][x] = 1
+        terrain_height = max(5, min(height - 5, terrain_height)) # 최소/최대 높이 보장
+        stone_layer_start_y = terrain_height + random.randint(8, 12)
 
-    # 2단계: 동굴 생성
-    cave_noise = PerlinNoise(octaves=octaves, seed=seed)
+        for y in range(terrain_height, height):
+            # 설정된 깊이보다 깊으면 돌(type=3), 아니면 흙(type=1)으로 채움
+            if y >= stone_layer_start_y:
+                map_data[y][x] = 3 # 3번 타입은 돌
+            else:
+                map_data[y][x] = 1 # 1번 타입은 흙
+            
+    # 2단계: 지하 동굴 생성 (펄린 노이즈 방식)
+    cave_noise = PerlinNoise(octaves=octaves, seed=seed + 1)
     cave_frequency = frequency * 2
+    # 동굴이 너무 넓게 생성되지 않도록 threshold 조정
     cave_threshold = 0.45 
 
     for y in range(height):
         for x in range(width):
-            terrain_height = 0
-            for h in range(height):
-                if map_data[h][x] != 0:
-                    terrain_height = h
-                    break
+            # 지표면에서 최소 5칸 아래부터 동굴 생성
             if y > terrain_height + 5:
                 noise_val = cave_noise([x * cave_frequency, y * cave_frequency])
                 if abs(noise_val) > cave_threshold:
-                    map_data[y][x] = 0
+                    map_data[y][x] = 0 # 동굴 파기
 
-    # ✨ 3단계: 지형 위에 나무 생성하기 (새로 추가된 부분) ✨
-    for x in range(width):
-        surface_y = -1
-        for y in range(height):
-            if map_data[y][x] in [1, 2]:
-                surface_y = y
-                break
-
-        if surface_y != -1 and random.random() < 0.1: # 10% 확률
-            # 잔디 블록(2) 위인지 확인 (잔디가 아직 없으므로 흙 블록(1) 위에 심도록 함)
-            is_on_surface_soil = (surface_y > 0 and map_data[surface_y-1][x] == 0)
-            if map_data[surface_y][x] == 1 and is_on_surface_soil:
-                tree_height = random.randint(4, 7)
-                
-                # 나무 기둥 생성
-                for i in range(tree_height):
-                    if surface_y - 1 - i >= 0:
-                        map_data[surface_y - 1 - i][x] = WOOD
-
-                # 나뭇잎 생성
-                leaf_top_y = surface_y - tree_height
-                leaf_radius = 2
-                for ly in range(-leaf_radius, leaf_radius + 1):
-                    for lx in range(-leaf_radius, leaf_radius + 1):
-                        if lx**2 + ly**2 < (leaf_radius + 0.5)**2:
-                            if 0 <= leaf_top_y + ly < height and 0 <= x + lx < width:
-                                if map_data[leaf_top_y + ly][x + lx] == 0:
-                                    map_data[leaf_top_y + ly][x + lx] = LEAF
-    
     return map_data
 
 def create_world_grid(map_data):

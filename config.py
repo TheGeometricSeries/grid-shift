@@ -10,24 +10,14 @@ pygame.init()
 pygame.mixer.init()
 
 # 화면 설정
-SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
-BASE_FPS = 60
-BASE_TILE_SIZE = 40
+SCREEN_WIDTH, SCREEN_HEIGHT, FPS = 800, 600, 60
+TILE_SIZE = 40
 
 # 색상
 SKY_COLOR, GRASS_COLOR, DIRT_COLOR, STONE_COLOR = (135, 206, 235), (34, 139, 34), (139, 69, 19), (130, 130, 130)
-WOOD_COLOR, LEAF_COLOR = (139, 90, 43), (0, 154, 23)
 CRACK_COLOR = (max(0, DIRT_COLOR[0]-50), max(0, DIRT_COLOR[1]-30), max(0, DIRT_COLOR[2]-10), 180)
 WHITE, BLACK, GRAY = (255, 255, 255), (0, 0, 0), (200, 200, 200)
 ORANGE, YELLOW = (255, 165, 0), (255, 255, 0)
-
-# 아이템 타입 번호
-AIR = 0
-DIRT = 1
-GRASS = 2
-STONE = 3
-WOOD = 4
-LEAF = 5
 
 # 파일 및 폴더 경로
 SAVE_FOLDER = os.path.join(BASE_DIR, "saved_worlds")
@@ -75,19 +65,16 @@ MAX_BREAK_TIME = 60
 GRASS_SPREAD_COOLDOWN = 30
 GRASS_DECAY_TIME = 45
 
-# 아이템 자석 효과 상수
+# --- ▼▼▼ 아이템 자석 효과 상수 추가 ▼▼▼ ---
 ITEM_MAGNET_RADIUS = 40  # 플레이어로부터 80픽셀(블록 2칸) 반경
 ITEM_MAGNET_SPEED = 3   # 초당 5픽셀의 속도로 끌어당김
 
-# 낙하 데미지 상수
-SAFE_FALL_DISTANCE = BASE_TILE_SIZE * 4  # 4칸 (160픽셀)까지는 안전
-FALL_DAMAGE_SCALAR = 0.25           # 안전 높이를 초과한 픽셀당 0.5의 데미지
+# --- ▼▼▼ 낙하 데미지 상수 추가 ▼▼▼ ---
+SAFE_FALL_DISTANCE = TILE_SIZE * 4  # 4칸 (160픽셀)까지는 안전
+FALL_DAMAGE_SCALAR = 0.25            # 안전 높이를 초과한 픽셀당 0.5의 데미지
 
-# 적 데미지 상수
+# --- ▼▼▼ 적 데미지 상수 추가 ▼▼▼ ---
 ENEMY_DAMAGE = 10 # 적의 공격 한 방당 데미지
 
-# 청크 시스템 상수
+# --- ▼▼▼ 청크 시스템 상수 추가 ▼▼▼ ---
 CHUNK_SIZE = 32  # 맵을 32x32 타일 크기의 청크로 나눔
-
-# 통과 가능한 블록 타입 정의 (플레이어가 충돌하지 않음)
-NON_SOLID_BLOCKS = {WOOD, LEAF}

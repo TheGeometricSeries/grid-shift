@@ -3,6 +3,7 @@ import sys
 import os
 import random
 from config import *
+# from world import save_map  <-- 파일 상단에 있던 이 라인이 삭제된 것이 중요합니다!
 
 class Button:
     def __init__(self, x, y, width, height, text, color, hover_color, font=button_font):
@@ -15,10 +16,8 @@ class Button:
         text_surf = self.font.render(self.text, True, WHITE)
         text_rect = text_surf.get_rect(center=self.rect.center)
         screen.blit(text_surf, text_rect)
-    def check_hover(self, mouse_pos):
-        self.is_hovered = self.rect.collidepoint(mouse_pos)
-    def is_clicked(self, event):
-        return event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.is_hovered
+    def check_hover(self, mouse_pos): self.is_hovered = self.rect.collidepoint(mouse_pos)
+    def is_clicked(self, event): return event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.is_hovered
 
 def loading_screen(message):
     screen.fill(SKY_COLOR)
@@ -39,7 +38,7 @@ def title_screen():
             if event.type == pygame.QUIT: pygame.quit(); sys.exit()
             if play_btn.is_clicked(event): return "PLAY_MENU"
             if quit_btn.is_clicked(event): pygame.quit(); sys.exit()
-        pygame.display.update(); clock.tick(BASE_FPS)
+        pygame.display.update(); clock.tick(FPS)
 
 def play_menu_screen():
     new_btn = Button(SCREEN_WIDTH/2-BTN_MEDIUM_W/2, 280, BTN_MEDIUM_W, BTN_MEDIUM_H, STRINGS["new_world"], GRAY, BLACK)
@@ -56,7 +55,7 @@ def play_menu_screen():
             if new_btn.is_clicked(event): return "WORLD_CREATION"
             if load_btn.is_clicked(event): return "LOAD_SELECTION"
             if back_btn.is_clicked(event): return "TITLE"
-        pygame.display.update(); clock.tick(BASE_FPS)
+        pygame.display.update(); clock.tick(FPS)
 
 def world_creation_screen():
     name_box = pygame.Rect(SCREEN_WIDTH/2 - 250, 250, 500, 60)
@@ -93,7 +92,7 @@ def world_creation_screen():
         create_btn.draw(screen)
         back_btn.draw(screen)
         
-        # --- 이벤트 처리 로직 ---
+        # --- 이벤트 처리 로직 (수정된 부분) ---
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -135,7 +134,7 @@ def world_creation_screen():
                         seed_text += event.unicode
         
         pygame.display.update()
-        clock.tick(BASE_FPS)
+        clock.tick(FPS)
 
 def load_selection_screen():
     back_btn = Button(20, 20, BTN_SMALL_W, BTN_SMALL_H, STRINGS["back_button"], GRAY, BLACK)
@@ -163,7 +162,7 @@ def load_selection_screen():
                 if btn_group['load'].is_clicked(event): return btn_group['file']
                 if btn_group['delete'].is_clicked(event): os.remove(btn_group['file']); action_taken=True; break
         if action_taken: continue
-        pygame.display.update(); clock.tick(BASE_FPS)
+        pygame.display.update(); clock.tick(FPS)
 
 def pause_screen(world_grid, world_name, player_rect):
     # ✨✨✨ KEY CHANGE IS HERE! ✨✨✨
@@ -182,7 +181,7 @@ def pause_screen(world_grid, world_name, player_rect):
             if save_quit_btn.is_clicked(event):
                 save_map(world_grid, world_name, player_rect)
                 return "QUIT_TO_TITLE"
-        pygame.display.update(); clock.tick(BASE_FPS)
+        pygame.display.update(); clock.tick(FPS)
 
 def draw_ui(player):
     pygame.draw.rect(screen, (200,0,0), (20, 20, 200, 25))
@@ -245,7 +244,7 @@ def game_over_screen():
             if event.type == pygame.QUIT: pygame.quit(); sys.exit()
             if restart_btn.is_clicked(event): return "RESTART"
             if quit_btn.is_clicked(event): return "TITLE"
-        pygame.display.update(); clock.tick(BASE_FPS)
+        pygame.display.update(); clock.tick(FPS)
 
 def inventory_screen(screen, player): # ✨ clock 인자 삭제
     """인벤토리 화면을 그리는 함수 (게임 루프 안에서 호출됨)"""
@@ -301,12 +300,8 @@ def inventory_screen(screen, player): # ✨ clock 인자 삭제
         pygame.draw.rect(screen, (80, 80, 80), slot_rect)
         pygame.draw.rect(screen, GRAY, slot_rect, 2)
 
-        if item_name == "dirt" or item_name == "grass":
-            item_color = DIRT_COLOR
-        elif item_name == "stone":
-            item_color = STONE_COLOR
-        elif item_name == "wood":
-            item_color = WOOD_COLOR
+        if item_name == "dirt" or item_name == "grass": item_color = DIRT_COLOR
+        elif item_name == "stone": item_color = STONE_COLOR
         else: item_color = WHITE
         
         icon_rect = pygame.Rect(slot_x + 10, slot_y + 10, slot_size - 20, slot_size - 20)
