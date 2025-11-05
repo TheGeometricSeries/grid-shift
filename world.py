@@ -3,7 +3,7 @@ import os
 import random
 from perlin_noise import PerlinNoise
 from entities import Tile
-from config import BASE_TILE_SIZE, SAVE_FOLDER
+from config import *
 
 def get_nearby_tiles(entity_rect, world_grid):
     nearby_tiles = []
@@ -42,15 +42,46 @@ def generate_map_data(width, height, seed, frequency, octaves):
     cave_noise = PerlinNoise(octaves=octaves, seed=seed + 1)
     cave_frequency = frequency * 2
     # 동굴이 너무 넓게 생성되지 않도록 threshold 조정
-    cave_threshold = 0.45 
+    cave_threshold = 0.3
 
     for y in range(height):
         for x in range(width):
             # 지표면에서 최소 5칸 아래부터 동굴 생성
-            if y > terrain_height + 5:
+            if y > terrain_height + 8:
                 noise_val = cave_noise([x * cave_frequency, y * cave_frequency])
                 if abs(noise_val) > cave_threshold:
                     map_data[y][x] = 0 # 동굴 파기
+
+    # 3단계: 지형 위에 나무 생성하기 (새로 추가된 부분)
+    for x in range(width):
+        surface_y = -1
+        # 지표면(가장 윗칸의 흙) 찾기
+        for y in range(height):
+            if map_data[y][x] == DIRT: # 흙(1)을 찾으면
+                surface_y = y
+                break
+
+        # 지표면을 찾았고, 10% 확률로 나무 생성
+        if surface_y != -1 and random.random() < 0.1: 
+            tree_height = random.randint(4, 7) # 나무 기둥 높이
+            
+            # 나무 기둥 생성 (지표면 *위*부터)
+            for i in range(tree_height):
+                if surface_y - 1 - i >= 0: # 맵 상단을 벗어나지 않게
+                    map_data[surface_y - 1 - i][x] = WOOD # 나무(4)
+
+            # 나뭇잎 생성 (기둥 꼭대기 주변)
+            leaf_top_y = surface_y - tree_height
+            leaf_radius = 2 # 나뭇잎 반경
+            for ly in range(-leaf_radius, leaf_radius + 1):
+                for lx in range(-leaf_radius, leaf_radius + 1):
+                    # 원 모양으로 잎 배치
+                    if lx**2 + ly**2 < (leaf_radius + 0.5)**2:
+                        # 맵 경계를 벗어나지 않는지 확인
+                        if 0 <= leaf_top_y + ly < height and 0 <= x + lx < width:
+                            # 기존 블록이 공기(0)일 때만 잎으로 덮기
+                            if map_data[leaf_top_y + ly][x + lx] == AIR:
+                                map_data[leaf_top_y + ly][x + lx] = LEAF # 잎(5)
 
     return map_data
 

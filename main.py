@@ -20,7 +20,8 @@ def run_game():
         elif game_state == "LOAD_SELECTION":
             result = load_selection_screen()
 
-            if result == "PLAY_MENU": game_state = "PLAY_MENU"
+            if result == "PLAY_MENU":
+                game_state = "PLAY_MENU"
 
             elif result is not None:
                 loading_screen(STRINGS.get("loading_world", "월드 불러오는 중..."))

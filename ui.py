@@ -166,7 +166,6 @@ def load_selection_screen():
         pygame.display.update(); clock.tick(BASE_FPS)
 
 def pause_screen(world_grid, world_name, player_rect):
-    # ✨✨✨ KEY CHANGE IS HERE! ✨✨✨
     # 이 함수가 호출될 때만 world.py에서 save_map을 불러옵니다.
     from world import save_map
     
@@ -193,7 +192,7 @@ def draw_ui(player):
     #inventory_text = small_font.render(f"흙: {dirt_count}", True, WHITE); screen.blit(inventory_text, (20, 55))
     
     # 핫바 설정 (✨ 수정된 부분)
-    slot_size = 40  # 슬롯 크기 줄임 (기존 50)
+    slot_size = 30  # 슬롯 크기 줄임 (기존 50)
     slot_margin = 8 # 슬롯 간격 줄임 (기존 10)
     hotbar_width = (slot_size + slot_margin) * len(player.item_slots) - slot_margin
     hotbar_x = (SCREEN_WIDTH - hotbar_width) / 2

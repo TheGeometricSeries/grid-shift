@@ -43,15 +43,16 @@ def main_game(map_data, world_name, start_pos=None):
     map_width_pixels = MAP_WIDTH * BASE_TILE_SIZE
     map_height_pixels = MAP_HEIGHT * BASE_TILE_SIZE
 
-    # ✨ 1. 전체 크기를 가지지만 비어있는 world_grid를 생성
+    # 1. 전체 크기를 가지지만 비어있는 world_grid를 생성
     world_grid = [[None for _ in range(MAP_WIDTH)] for _ in range(MAP_HEIGHT)]
-    # ✨ 2. 현재 로드된 청크를 추적하기 위한 set
+    # 2. 현재 로드된 청크를 추적하기 위한 set
     loaded_chunks = set()
     ITEM_TO_TILE_TYPE = {
         "dirt": 1,
         "grass": 1, # '잔디' 아이템도 설치 시에는 흙(1)으로 설치됩니다.
         "stone": 3,
-        "wood": 4
+        "wood": 4,
+        "leaf": 5
     }
     particles, item_drops, grass_spread_timer = [], [], 0
     break_timer = 0

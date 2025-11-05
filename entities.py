@@ -19,12 +19,16 @@ class Tile:
     def __init__(self, x, y, tile_type):
         self.rect = pygame.Rect(x * BASE_TILE_SIZE, y * BASE_TILE_SIZE, BASE_TILE_SIZE, BASE_TILE_SIZE)
         self.type = tile_type
-        if self.type == 3: # 타입이 3(돌)이면
-            self.max_health = 300 # 체력을 300으로 설정 (흙보다 3배 단단함)
+        if self.type == 1: # 타입이 1(잔디)이면
+            self.max_health = 100 # 체력을 100으로 설정
+        elif self.type == 2: # 타입이 2(흙)이면
+            self.max_health = 100 # 체력을 200으로 설정
+        elif self.type == 3: # 타입이 3(돌)이면
+            self.max_health = 500 # 체력을 500으로 설정
         elif self.type == 4: # 타입이 4(나무)이면
             self.max_health = 200 # 체력을 200으로 설정
-        else:
-            self.max_health = 100 # 나머지는 100
+        elif self.type == 5: # 타입이 5(나뭇잎)이면
+            self.max_health = 50 # 체력을 50으로 설정
         
         self.health = self.max_health
         self.crack_lines = None
@@ -97,11 +101,11 @@ class Entity:
         if self.health < 0: self.health = 0
 
     def apply_friction(self):
-        """땅 위에 있을 때만 마찰력을 적용합니다."""
+        """땅 위에 있을 때만 마찰력을 적용"""
         if self.is_on_ground:
             self.vel.x *= self.friction
             # 속도가 매우 느려지면 완전히 멈추도록 처리
-            if abs(self.vel.x) < 0.1:
+            if abs(self.vel.x) < 0.5:
                 self.vel.x = 0
 
     def update_physics(self, colliders):
@@ -239,7 +243,7 @@ class ItemDrop(Entity):
             
             # 만약 불안정하다면 회전력을 적용
             if is_unstable:
-                torque = 0.5 # 회전력
+                torque = 0.2 # 회전력
                 if self.rect.centerx < support_min_x:
                     self.angular_velocity -= torque
                 else:
@@ -259,7 +263,7 @@ class ItemDrop(Entity):
         elif self.item_type == "wood":
             color = WOOD_COLOR
         elif self.item_type == "leaf":
-            color - LEAF_COLOR
+            color = LEAF_COLOR
         else: # 기본값은 흙
             color = DIRT_COLOR
         pygame.draw.rect(original_surf, color, original_surf.get_rect())

@@ -75,8 +75,8 @@ GRASS_SPREAD_COOLDOWN = 30
 GRASS_DECAY_TIME = 45
 
 # 아이템 자석 효과 상수
-ITEM_MAGNET_RADIUS = 40  # 플레이어로부터 80픽셀(블록 2칸) 반경
-ITEM_MAGNET_SPEED = 3   # 초당 5픽셀의 속도로 끌어당김
+ITEM_MAGNET_RADIUS = 40  # 플레이어로부터 40픽셀(블록 1칸) 반경
+ITEM_MAGNET_SPEED = 3   # 초당 3픽셀의 속도로 끌어당김
 
 # 낙하 데미지 상수
 SAFE_FALL_DISTANCE = BASE_TILE_SIZE * 4  # 4칸 (160픽셀)까지는 안전
