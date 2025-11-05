@@ -41,12 +41,48 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Blocky World")
 clock = pygame.time.Clock()
 
+# === 텍스처 생성 함수 ===
+def create_block_textures():
+    textures = {}
+
+    # 1. 단색 텍스처 (흙, 돌, 나무)
+    textures[DIRT] = pygame.Surface((BASE_TILE_SIZE, BASE_TILE_SIZE))
+    textures[DIRT].fill(DIRT_COLOR)
+    
+    textures[STONE] = pygame.Surface((BASE_TILE_SIZE, BASE_TILE_SIZE))
+    textures[STONE].fill(STONE_COLOR)
+    
+    textures[WOOD] = pygame.Surface((BASE_TILE_SIZE, BASE_TILE_SIZE))
+    textures[WOOD].fill(WOOD_COLOR)
+
+    # 2. 잔디 텍스처 (위쪽 10픽셀만 초록색)
+    textures[GRASS] = pygame.Surface((BASE_TILE_SIZE, BASE_TILE_SIZE))
+    textures[GRASS].fill(DIRT_COLOR)
+    pygame.draw.rect(textures[GRASS], GRASS_COLOR, (0, 0, BASE_TILE_SIZE, 10))
+
+    # 3. 나뭇잎 텍스처 (구멍 뚫기)
+    # pygame.SRCALPHA 플래그를 줘서 투명도를 지원하는 Surface 생성
+    leaf_surf = pygame.Surface((BASE_TILE_SIZE, BASE_TILE_SIZE), pygame.SRCALPHA)
+    leaf_surf.fill(LEAF_COLOR) # 일단 꽉 채우고
+    
+    # (0, 0, 0, 0)은 완전히 투명한 색상입니다.
+    # 투명한 사각형을 그려서 "구멍"을 뚫습니다.
+    pygame.draw.rect(leaf_surf, (0, 0, 0, 0), (5, 5, 10, 10))
+    pygame.draw.rect(leaf_surf, (0, 0, 0, 0), (25, 10, 8, 8))
+    pygame.draw.rect(leaf_surf, (0, 0, 0, 0), (10, 25, 15, 10))
+    textures[LEAF] = leaf_surf
+
+    return textures
+
+# 게임 시작 시 텍스처 로드
+BLOCK_TEXTURES = create_block_textures()
+
 # 폰트 로딩
 try:
     title_font = pygame.font.Font(FONT_FILE, 80)
     button_font = pygame.font.Font(FONT_FILE, 35)
     input_font = pygame.font.Font(FONT_FILE, 45)
-    small_font = pygame.font.Font(FONT_FILE, 25)
+    small_font = pygame.font.Font(FONT_FILE, 20)
     indicator_font = pygame.font.Font(FONT_FILE, 40)
 except pygame.error:
     print(f"오류: {FONT_FILE} 폰트 파일을 찾을 수 없습니다.")

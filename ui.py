@@ -217,13 +217,17 @@ def draw_ui(player):
                 item_color = DIRT_COLOR
             elif item_name == "stone":
                 item_color = STONE_COLOR
-            
+            elif item_name == "wood":
+                item_color = WOOD_COLOR
+            elif item_name == "leaf":
+                item_color = LEAF_COLOR
+
             # 아이콘 위치 및 크기 조정
             icon_rect = pygame.Rect(slot_x + 7, hotbar_y + 7, slot_size - 14, slot_size - 14)
             pygame.draw.rect(screen, item_color, icon_rect)
             
-            # ✨ 아이콘에 검정 테두리 추가
-            pygame.draw.rect(screen, BLACK, icon_rect, 2)
+            # 아이콘에 검정 테두리 추가
+            pygame.draw.rect(screen, BLACK, icon_rect, 1)
 
             # 아이템 개수 텍스트
             count = player.inventory.get(item_name, 0)

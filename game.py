@@ -266,11 +266,14 @@ def main_game(map_data, world_name, start_pos=None):
         # --- ▼▼▼ 적-플레이어 충돌 확인 코드 추가 ▼▼▼ ---
         for enemy in enemies:
             # 1. 적 주변의 타일 정보를 가져옵니다 (update에 필요).
-            nearby_tile_rects = [t.rect for t in get_nearby_tiles(enemy.rect, world_grid) if t] # <--- 이 줄을 삭제하세요!
+            # nearby_tile_rects = [t.rect for t in get_nearby_tiles(enemy.rect, world_grid) if t] # <--- 이 줄을 삭제하세요!
             
             # 2. 적의 상태를 업데이트합니다 (player 객체 전체를 전달).
             # 이 안에서 시야 확인(머리,몸,발)이 모두 이루어집니다.
-            enemy.update(nearby_tile_rects, player, world_grid) # <--- 이 줄도 삭제하세요!
+            # enemy.update(nearby_tile_rects, player, world_grid) # <--- 이 줄도 삭제하세요!
+            
+            # ✨ (수정) 2단계를 반영하여, 이미 계산된 'solid_tile_rects'를 사용합니다.
+            enemy.update(solid_tile_rects, player, world_grid)
             
             # 3. 만약 적이 공격 중이고 몽둥이가 플레이어와 닿았다면 데미지를 줍니다.
             if enemy.club_world_rect and player.rect.colliderect(enemy.club_world_rect):
@@ -299,10 +302,16 @@ def main_game(map_data, world_name, start_pos=None):
             if break_timer <= 0:
                 tile_to_break = world_grid[mouse_grid_y][mouse_grid_x]
                 # 부서진 블록 타입에 따라 드랍할 아이템 결정
-                if tile_to_break.type == 3: # 돌
-                    item_to_drop = "stone"
-                else: # 흙 또는 잔디
+                if tile_to_break.type == 1: # 잔디
                     item_to_drop = "dirt"
+                elif tile_to_break.type == 2: # 흙
+                    item_to_drop = "dirt"
+                elif tile_to_break.type == 3: # 돌
+                    item_to_drop = "stone"
+                elif tile_to_break.type == 4: # 나무
+                    item_to_drop = "wood"
+                elif tile_to_break.type == 5: # 나뭇잎
+                    item_to_drop = "leaf"
                 
                 item_drops.append(ItemDrop(tile_to_break.rect.centerx, tile_to_break.rect.centery, item_to_drop))
                 world_grid[mouse_grid_y][mouse_grid_x] = None
