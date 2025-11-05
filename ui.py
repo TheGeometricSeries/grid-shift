@@ -15,10 +15,8 @@ class Button:
         text_surf = self.font.render(self.text, True, WHITE)
         text_rect = text_surf.get_rect(center=self.rect.center)
         screen.blit(text_surf, text_rect)
-    def check_hover(self, mouse_pos):
-        self.is_hovered = self.rect.collidepoint(mouse_pos)
-    def is_clicked(self, event):
-        return event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.is_hovered
+    def check_hover(self, mouse_pos): self.is_hovered = self.rect.collidepoint(mouse_pos)
+    def is_clicked(self, event): return event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.is_hovered
 
 def loading_screen(message):
     screen.fill(SKY_COLOR)
@@ -93,7 +91,7 @@ def world_creation_screen():
         create_btn.draw(screen)
         back_btn.draw(screen)
         
-        # --- 이벤트 처리 로직 ---
+        # --- 이벤트 처리 로직 (수정된 부분) ---
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -166,6 +164,7 @@ def load_selection_screen():
         pygame.display.update(); clock.tick(BASE_FPS)
 
 def pause_screen(world_grid, world_name, player_rect):
+    # ✨✨✨ KEY CHANGE IS HERE! ✨✨✨
     # 이 함수가 호출될 때만 world.py에서 save_map을 불러옵니다.
     from world import save_map
     
@@ -192,7 +191,7 @@ def draw_ui(player):
     #inventory_text = small_font.render(f"흙: {dirt_count}", True, WHITE); screen.blit(inventory_text, (20, 55))
     
     # 핫바 설정 (✨ 수정된 부분)
-    slot_size = 30  # 슬롯 크기 줄임 (기존 50)
+    slot_size = 40  # 슬롯 크기 줄임 (기존 50)
     slot_margin = 8 # 슬롯 간격 줄임 (기존 10)
     hotbar_width = (slot_size + slot_margin) * len(player.item_slots) - slot_margin
     hotbar_x = (SCREEN_WIDTH - hotbar_width) / 2
@@ -221,13 +220,13 @@ def draw_ui(player):
                 item_color = WOOD_COLOR
             elif item_name == "leaf":
                 item_color = LEAF_COLOR
-
+            
             # 아이콘 위치 및 크기 조정
             icon_rect = pygame.Rect(slot_x + 7, hotbar_y + 7, slot_size - 14, slot_size - 14)
             pygame.draw.rect(screen, item_color, icon_rect)
             
-            # 아이콘에 검정 테두리 추가
-            pygame.draw.rect(screen, BLACK, icon_rect, 1)
+            # ✨ 아이콘에 검정 테두리 추가
+            pygame.draw.rect(screen, BLACK, icon_rect, 2)
 
             # 아이템 개수 텍스트
             count = player.inventory.get(item_name, 0)
@@ -310,6 +309,8 @@ def inventory_screen(screen, player): # ✨ clock 인자 삭제
             item_color = STONE_COLOR
         elif item_name == "wood":
             item_color = WOOD_COLOR
+        elif item_name == "leaf":
+            item_color = LEAF_COLOR
         else: item_color = WHITE
         
         icon_rect = pygame.Rect(slot_x + 10, slot_y + 10, slot_size - 20, slot_size - 20)
