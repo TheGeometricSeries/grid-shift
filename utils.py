@@ -1,17 +1,15 @@
-# utils.py
-
-from config import TILE_SIZE
+from config import BASE_TILE_SIZE
 
 def has_line_of_sight(start_grid_pos, end_grid_pos, world_grid):
     # 이 함수는 grid 좌표를 받습니다.
     # 시야선이 시작하는 정확한 픽셀 좌표를 계산합니다.
     # player.torso_rect.center를 사용하므로 facing_direction의 영향을 받지 않습니다.
-    start_pixel_x = start_grid_pos[0] * TILE_SIZE + TILE_SIZE // 2
-    start_pixel_y = start_grid_pos[1] * TILE_SIZE + TILE_SIZE // 2
+    start_pixel_x = start_grid_pos[0] * BASE_TILE_SIZE + BASE_TILE_SIZE // 2
+    start_pixel_y = start_grid_pos[1] * BASE_TILE_SIZE + BASE_TILE_SIZE // 2
 
     # 시야선이 끝나는 정확한 픽셀 좌표를 계산합니다.
-    end_pixel_x = end_grid_pos[0] * TILE_SIZE + TILE_SIZE // 2
-    end_pixel_y = end_grid_pos[1] * TILE_SIZE + TILE_SIZE // 2
+    end_pixel_x = end_grid_pos[0] * BASE_TILE_SIZE + BASE_TILE_SIZE // 2
+    end_pixel_y = end_grid_pos[1] * BASE_TILE_SIZE + BASE_TILE_SIZE // 2
 
     # 브레젠험(Bresenham) 알고리즘을 사용하여 선 위의 모든 타일을 확인합니다.
     x0, y0 = start_pixel_x, start_pixel_y
@@ -25,8 +23,8 @@ def has_line_of_sight(start_grid_pos, end_grid_pos, world_grid):
 
     while True:
         # 현재 픽셀 위치를 그리드 좌표로 변환
-        current_grid_x = x0 // TILE_SIZE
-        current_grid_y = y0 // TILE_SIZE
+        current_grid_x = x0 // BASE_TILE_SIZE
+        current_grid_y = y0 // BASE_TILE_SIZE
 
         # 시작점이나 끝점은 확인하지 않고, 그 사이에 있는 블록만 확인
         # 현재 타일이 목표 타일과 동일하지 않고, 시작 타일과도 동일하지 않을 때만 블록 확인

@@ -52,7 +52,7 @@ def run_game():
                 spawn_x_col = random.randint(2500, 7500) # 스폰 위치
                 for y in range(MAP_HEIGHT):
                     if map_data[y][spawn_x_col] != 0:
-                        player_start_pos = (spawn_x_col * TILE_SIZE, (y - 3) * TILE_SIZE)
+                        player_start_pos = (spawn_x_col * BASE_TILE_SIZE, (y - 3) * BASE_TILE_SIZE)
                         break
                 
                 loaded_data = {"map_data": map_data} # ✨ 가벼운 map_data를 전달하기 위해 저장

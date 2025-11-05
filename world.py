@@ -3,14 +3,14 @@ import os
 import random
 from perlin_noise import PerlinNoise
 from entities import Tile
-from config import TILE_SIZE, SAVE_FOLDER
+from config import BASE_TILE_SIZE, SAVE_FOLDER
 
 def get_nearby_tiles(entity_rect, world_grid):
     nearby_tiles = []
-    start_x = max(0, entity_rect.left // TILE_SIZE - 2)
-    end_x = min(len(world_grid[0]), entity_rect.right // TILE_SIZE + 3)
-    start_y = max(0, entity_rect.top // TILE_SIZE - 2)
-    end_y = min(len(world_grid), entity_rect.bottom // TILE_SIZE + 3)
+    start_x = max(0, entity_rect.left // BASE_TILE_SIZE - 2)
+    end_x = min(len(world_grid[0]), entity_rect.right // BASE_TILE_SIZE + 3)
+    start_y = max(0, entity_rect.top // BASE_TILE_SIZE - 2)
+    end_y = min(len(world_grid), entity_rect.bottom // BASE_TILE_SIZE + 3)
 
     for y in range(start_y, end_y):
         for x in range(start_x, end_x):
