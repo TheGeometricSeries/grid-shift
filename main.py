@@ -2,12 +2,12 @@ import os
 import random
 from config import *
 from ui import title_screen, play_menu_screen, world_creation_screen, load_selection_screen, game_over_screen, loading_screen
-from world import generate_map_data, create_world_grid, load_map
+from world import generate_map_data, load_map
 from game import main_game
 
 def run_game():
     game_state = "TITLE"
-    world_grid, world_name, player_start_pos = None, None, None
+    world_name, player_start_pos = None, None
     loaded_data = None # 재시작 시 초기 위치를 기억하기 위함
 
     while True:
@@ -28,7 +28,6 @@ def run_game():
                 loaded_data = load_map(result)
 
                 if loaded_data and "map_data" in loaded_data:
-                    world_grid = create_world_grid(loaded_data["map_data"])
                     player_start_pos = loaded_data.get("player_pos")
                     world_name = os.path.basename(result).replace(".json", "")
                     game_state = "GAMEPLAY"

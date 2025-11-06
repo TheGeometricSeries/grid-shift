@@ -15,8 +15,10 @@ class Button:
         text_surf = self.font.render(self.text, True, WHITE)
         text_rect = text_surf.get_rect(center=self.rect.center)
         screen.blit(text_surf, text_rect)
-    def check_hover(self, mouse_pos): self.is_hovered = self.rect.collidepoint(mouse_pos)
-    def is_clicked(self, event): return event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.is_hovered
+    def check_hover(self, mouse_pos):
+        self.is_hovered = self.rect.collidepoint(mouse_pos)
+    def is_clicked(self, event):
+        return event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.is_hovered
 
 def loading_screen(message):
     screen.fill(SKY_COLOR)
@@ -164,7 +166,6 @@ def load_selection_screen():
         pygame.display.update(); clock.tick(BASE_FPS)
 
 def pause_screen(world_grid, world_name, player_rect):
-    # ✨✨✨ KEY CHANGE IS HERE! ✨✨✨
     # 이 함수가 호출될 때만 world.py에서 save_map을 불러옵니다.
     from world import save_map
     
@@ -191,8 +192,8 @@ def draw_ui(player):
     #inventory_text = small_font.render(f"흙: {dirt_count}", True, WHITE); screen.blit(inventory_text, (20, 55))
     
     # 핫바 설정 (✨ 수정된 부분)
-    slot_size = 40  # 슬롯 크기 줄임 (기존 50)
-    slot_margin = 8 # 슬롯 간격 줄임 (기존 10)
+    slot_size = 40
+    slot_margin = 8
     hotbar_width = (slot_size + slot_margin) * len(player.item_slots) - slot_margin
     hotbar_x = (SCREEN_WIDTH - hotbar_width) / 2
     hotbar_y = SCREEN_HEIGHT - slot_size - 15 # 화면 하단과의 간격 조정
@@ -226,7 +227,7 @@ def draw_ui(player):
             pygame.draw.rect(screen, item_color, icon_rect)
             
             # ✨ 아이콘에 검정 테두리 추가
-            pygame.draw.rect(screen, BLACK, icon_rect, 2)
+            pygame.draw.rect(screen, BLACK, icon_rect, 1)
 
             # 아이템 개수 텍스트
             count = player.inventory.get(item_name, 0)

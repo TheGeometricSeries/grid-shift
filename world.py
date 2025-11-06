@@ -85,22 +85,6 @@ def generate_map_data(width, height, seed, frequency, octaves):
 
     return map_data
 
-def create_world_grid(map_data):
-    world_grid = []
-    for y, row in enumerate(map_data):
-        grid_row = []
-        for x, tile_type in enumerate(row):
-            if tile_type != 0:
-                is_exposed = (y == 0 or map_data[y-1][x] == 0)
-                block_type = 2 if is_exposed else 1
-                grid_row.append(Tile(x, y, block_type))
-
-            else:
-                grid_row.append(None)
-        world_grid.append(grid_row)
-
-    return world_grid
-
 def grid_to_map_data(world_grid):
     return [[tile.type if tile else 0 for tile in row] for row in world_grid]
 

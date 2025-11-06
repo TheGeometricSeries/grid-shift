@@ -7,7 +7,90 @@ from world import get_nearby_tiles
 from utils import has_line_of_sight
 from ui import pause_screen, draw_ui, inventory_screen
 
-# 블록 파괴 진행도를 시각화하는 함수 (새로 추가)
+# game.py (파일 상단, draw_break_progress 함수 위)
+
+# '들쭉날쭉한 선'을 그리기 위한 헬퍼 함수
+def draw_jagged_line(screen, color, start_pos, end_pos, thickness=1, segments=4, jitter=4):
+    """
+    start_pos에서 end_pos까지 들쭉날쭉한 선을 그립니다.
+    - segments: 선을 몇 조각으로 나눌지
+    - jitter: 각 조각을 얼마나 무작위로 비틀지
+    """
+    points = [start_pos]
+    dx = (end_pos[0] - start_pos[0]) / segments
+    dy = (end_pos[1] - start_pos[1]) / segments
+
+    for i in range(1, segments):
+        base_x = start_pos[0] + i * dx
+        base_y = start_pos[1] + i * dy
+        # 중간 지점들에 무작위 '떨림'을 추가
+        jitter_x = base_x + random.randint(-jitter, jitter)
+        jitter_y = base_y + random.randint(-jitter, jitter)
+        points.append((jitter_x, jitter_y))
+    
+    points.append(end_pos)
+    
+    # 여러 개의 점을 선으로 이어 그립니다.
+    pygame.draw.lines(screen, color, False, points, thickness)
+
+
+# --- 기존 함수를 아래와 같이 수정 ---
+
+def draw_break_progress(screen, target_tile_rect, break_timer, max_break_time, camera_x, camera_y):
+    if target_tile_rect is None or break_timer <= 0:
+        return
+
+    screen_rect = target_tile_rect.move(-camera_x, -camera_y)
+    progress = 1 - (break_timer / max_break_time)
+    
+    # (config.py에 BASE_TILE_SIZE, BLACK, WHITE가 정의되어 있어야 합니다)
+    
+    # 1. '시드' 고정: 타일의 위치를 시드로 사용하여 항상 같은 패턴이 나오게 함
+    #    (주의: 다른 random 로직에 영향을 주지 않기 위해 상태를 저장/복원)
+    old_random_state = random.getstate()
+
+    seed_str = f"{target_tile_rect.topleft[0]},{target_tile_rect.topleft[1]}"
+    random.seed(seed_str) 
+
+    # 2. '최대 균열' 패턴 미리 생성
+    #    중앙에서 사방의 랜덤한 '가장자리'로 뻗어 나가는 균열
+    max_cracks = 7 # 최대 7개의 균열 라인
+    crack_lines = []
+    for _ in range(max_cracks):
+        # 중앙점
+        start_pos = screen_rect.center
+        
+        # 가장자리(상/하/좌/우) 중 하나를 랜덤하게 선택
+        edge = random.choice(['top', 'bottom', 'left', 'right'])
+        
+        if edge == 'top':
+            end_pos = (random.randint(screen_rect.left, screen_rect.right), screen_rect.top)
+        elif edge == 'bottom':
+            end_pos = (random.randint(screen_rect.left, screen_rect.right), screen_rect.bottom)
+        elif edge == 'left':
+            end_pos = (screen_rect.left, random.randint(screen_rect.top, screen_rect.bottom))
+        else: # 'right'
+            end_pos = (screen_rect.right, random.randint(screen_rect.top, screen_rect.bottom))
+        
+        crack_lines.append((start_pos, end_pos))
+
+    # 3. 진행도(progress)에 따라 생성된 균열을 '일부만' 그리기
+    #    progress가 1.0이면 max_cracks(7개)를 모두 그림
+    lines_to_draw = int(progress * max_cracks) + 1 # 최소 1개는 보이도록
+    
+    # 얼마나 비틀지 (타일 크기에 비례)
+    jitter_amount = max(1, BASE_TILE_SIZE // 8) 
+
+    for i in range(lines_to_draw):
+        if i < len(crack_lines):
+            start, end = crack_lines[i]
+            # 직선 대신 '들쭉날쭉한' 균열선 그리기
+            draw_jagged_line(screen, BLACK, start, end, 2, 4, jitter_amount)
+
+    # 4. 다른 코드에 영향을 주지 않도록 원래 random 상태로 복원
+    random.setstate(old_random_state)
+"""
+# 블록 파괴 진행도를 시각화하는 함수
 def draw_break_progress(screen, target_tile_rect, break_timer, max_break_time, camera_x, camera_y):
     if target_tile_rect is None or break_timer <= 0:
         return
@@ -18,11 +101,6 @@ def draw_break_progress(screen, target_tile_rect, break_timer, max_break_time, c
     # 파괴 진행도 계산 (0.0 ~ 1.0)
     progress = 1 - (break_timer / max_break_time)
 
-    # 스크래치 그리기
-    # 진행도에 따라 다른 이미지 또는 선 그리기
-    # 여기서는 간단히 중앙에서 바깥으로 퍼지는 효과를 줄게요.
-    
-    # 1단계: 가장자리에 얇은 선으로 균열 표현 (선이 안쪽으로 자라는 효과)
     line_count = int(progress * 5) # 진행도에 따라 선 개수 증가 (최대 5개)
     for i in range(line_count):
         # 중앙에서 랜덤한 방향으로 짧은 선 그리기
@@ -30,13 +108,12 @@ def draw_break_progress(screen, target_tile_rect, break_timer, max_break_time, c
         end_x = start_x + random.randint(-BASE_TILE_SIZE // 3, BASE_TILE_SIZE // 3)
         end_y = start_y + random.randint(-BASE_TILE_SIZE // 3, BASE_TILE_SIZE // 3)
         pygame.draw.line(screen, WHITE, (start_x, start_y), (end_x, end_y), 2)
-    
-    # 2단계: 진행도에 따라 중앙에 검은색으로 파인 부분 표현
+
     # 파인 부분의 크기를 진행도에 비례하여 조절
-    dig_radius = int((BASE_TILE_SIZE / 4) * progress)
+    dig_radius = int((BASE_TILE_SIZE / 3) * progress)
     if dig_radius > 0:
         pygame.draw.circle(screen, BLACK, screen_rect.center, dig_radius)
-
+"""
 def main_game(map_data, world_name, start_pos=None):
     MAP_WIDTH = len(map_data[0])
     MAP_HEIGHT = len(map_data)
@@ -79,7 +156,7 @@ def main_game(map_data, world_name, start_pos=None):
         enemies.append(enemy)
 
     INTERACTION_RADIUS_X = 3 # 좌우 상호작용 반경
-    INTERACTION_RADIUS_Y = 3 # 아래쪽 상호작용 반경
+    INTERACTION_RADIUS_Y = 3 # 상하 상호작용 반경
     EXTRA_REACH_UP = 1       # 위쪽 추가 반경
 
     # 1. 기본 상호작용 범위를 표시할 Surface (Alpha: 50)
@@ -379,6 +456,7 @@ def main_game(map_data, world_name, start_pos=None):
         player.draw(screen, camera_x, camera_y)
         for enemy in enemies:
             enemy.draw(screen, camera_x, camera_y, player.rect)
+            
         if player.inventory.get(player.selected_item, 0) > 0:
             # 1. 설치 가능 여부를 판단하기 위한 모든 조건을 계산합니다.
             
