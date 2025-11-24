@@ -286,7 +286,7 @@ class Player(Entity):
         player_width = int(30 * self.scale_factor)
         player_height = self.leg_length + self.torso_height
         super().__init__(x, y, player_width, player_height)
-        self.friction = 0.88
+        self.friction = 0.87
 
         self.torso_rect = pygame.Rect(0,0,self.rect.width,self.torso_height)
         self.head_rect = pygame.Rect(0,0,int(25*self.scale_factor),int(25*self.scale_factor))
